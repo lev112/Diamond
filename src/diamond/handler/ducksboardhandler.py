@@ -12,7 +12,7 @@ class DucksboardHandler(Handler):
         super(DucksboardHandler, self).__init__(config)
         self.labels = {}
         self.api_key = self.config.get('api_key')
-        self.sync_time = timedelta(minute=int(self.config.get('sync_time_min', '5')))
+        self.sync_time = timedelta(minutes=int(self.config.get('sync_time_min', '5')))
         self.last_sync_time = None
         self.ducksboard = Ducksboard(self.api_key, '')
         self.log.info('started DucksboardHandler')
