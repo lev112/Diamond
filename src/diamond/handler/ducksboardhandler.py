@@ -2,7 +2,7 @@ import re
 from diamond.handler.Handler import Handler
 from libsaas.services import ducksboard
 from libsaas.services.ducksboard import Ducksboard
-
+from datetime import datetime, timedelta
 
 __author__ = 'LevKatzav'
 
@@ -10,11 +10,19 @@ __author__ = 'LevKatzav'
 class DucksboardHandler(Handler):
     def __init__(self, config=None):
         super(DucksboardHandler, self).__init__(config)
-        self.labels = set()
+        self.labels = {}
         self.api_key = self.config.get('api_key')
-        self.ducksboard = Ducksboard(self.api_key,'')
+        self.sync_time = timedelta(minute=int(self.config.get('sync_time_min', '5')))
+        self.last_sync_time = None
+        self.ducksboard = Ducksboard(self.api_key, '')
         self.log.info('started DucksboardHandler')
+        self._sync_labels()
 
+    def _get_label(self, path):
+        return path.lower()
+
+    def _sync_labels(self):
+        # get all the widgets so that only the needed labels will be sent
         widgets = self.ducksboard.widgets().get()
         self.labels_in_dashboard = set()
         for widget in [x for x in widgets['data']]:
@@ -29,37 +37,27 @@ class DucksboardHandler(Handler):
                     update_widget = True
             if update_widget:
                 self.ducksboard.widget(wid).update(widget)
-
-    def _get_label(self, path):
-        return path.lower()
-
+        self.last_sync_time = datetime.now()
 
     def process(self, metric):
-        # self.log.info('####################')
+        if datetime.now() > self.last_sync_time + self.sync_time:
+            self._sync_labels()
         label = self._get_label(metric.path)
+        # generate a list of all the labels
         if label not in self.labels:
-            self.labels.add(label)
+            self.labels[label] = metric.value
             with open('/tmp/diamond_labels.log', 'w') as f:
-                sorted_labels = sorted([label for label in self.labels])
-                lines = ['{0} {1}'.format(('*' if label in self.labels_in_dashboard else ' '), label) for label in sorted_labels]
+                sorted_labels = sorted([(label, value) for (label, value) in self.labels.iteritems()])
+                lines = ['{0} {1}\t#{2}'.format(('*' if label in self.labels_in_dashboard else ' '), label, value) for (label, value) in sorted_labels]
 
                 f.writelines('\n'.join(lines))
-            # data = {
-            #     "value": {"board": [{"name": l, "values": ['Fire']} for l in self.labels]
-            #
-            #     }
-            # }
-            # info_source = self.ducksboard.data_source('info')
-            # res = info_source.push(data)
-            # self.log.info('{0} - {1}'.format(res,data))
         if label not in self.labels_in_dashboard:
             return
         try:
-            source = self.ducksboard.data_source(label)
             data = {
                 "value": metric.value
             }
+            source = self.ducksboard.data_source(label)
             res = source.push(data)
-        except:
-            self.log.exception('######## {0}: {1}'.format(label,data))
-        # self.log.info('{0} - {1}'.format(res, data))
+        except Exception:
+            self.log.exception('{0}: {1}'.format(label,data))
