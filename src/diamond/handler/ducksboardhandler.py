@@ -11,6 +11,7 @@ class DucksboardHandler(Handler):
     def __init__(self, config=None):
         super(DucksboardHandler, self).__init__(config)
         self.labels = {}
+        self.labels_in_dashboard = set()
         self.api_key = self.config.get('api_key')
         self.sync_time = timedelta(minutes=int(self.config.get('sync_time_min', '5')))
         self.labels_file_name =  self.config.get('labels_file_name', '/tmp/diamond_labels.log')
@@ -25,6 +26,7 @@ class DucksboardHandler(Handler):
     def _sync_labels(self):
         # get all the widgets so that only the needed labels will be sent
         widgets = self.ducksboard.widgets().get()
+        old_labels_in_dashboard = self.labels_in_dashboard
         self.labels_in_dashboard = set()
         for widget in [x for x in widgets['data']]:
             wid = widget['widget']['id']
@@ -38,7 +40,14 @@ class DucksboardHandler(Handler):
                     update_widget = True
             if update_widget:
                 self.ducksboard.widget(wid).update(widget)
-        self.last_sync_time = datetime.now()
+
+        # the labels in the dashboard has changed
+        if old_labels_in_dashboard != self.labels_in_dashboard:
+            self.log.info('labels_in_dashboard has been updated')
+            self.labels = {}  # so that the labels log will be created again
+            self.last_sync_time = datetime.now()
+
+
 
     def process(self, metric):
         if datetime.now() > self.last_sync_time + self.sync_time:
@@ -47,7 +56,7 @@ class DucksboardHandler(Handler):
         # generate a list of all the labels
         if label not in self.labels:
             self.labels[label] = metric.value
-            with open('/tmp/diamond_labels.log', 'w') as f:
+            with open(self.labels_file_name, 'w') as f:
                 sorted_labels = sorted([(label, value) for (label, value) in self.labels.iteritems()])
                 lines = ['{0} {1}\t#{2}'.format(('*' if label in self.labels_in_dashboard else ' '), label, value) for (label, value) in sorted_labels]
 
