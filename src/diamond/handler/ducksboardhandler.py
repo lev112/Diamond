@@ -13,6 +13,7 @@ class DucksboardHandler(Handler):
         self.labels = {}
         self.api_key = self.config.get('api_key')
         self.sync_time = timedelta(minutes=int(self.config.get('sync_time_min', '5')))
+        self.labels_file_name =  self.config.get('labels_file_name', '/tmp/diamond_labels.log')
         self.last_sync_time = None
         self.ducksboard = Ducksboard(self.api_key, '')
         self.log.info('started DucksboardHandler')
