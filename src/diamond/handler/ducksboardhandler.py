@@ -45,6 +45,8 @@ class DucksboardHandler(Handler):
         # the labels in the dashboard has changed
         if old_labels_in_dashboard != self.labels_in_dashboard:
             self.log.info('labels_in_dashboard has been updated')
+            self.log.info(self.labels_in_dashboard)
+
 
 
 
@@ -64,6 +66,7 @@ class DucksboardHandler(Handler):
             }
             source = self.ducksboard.data_source(label)
             res = source.push(data)
+
             if not self.labels[label][1]:
                 self.log.info('####### {0}-{1}'.format(label, self.labels[label]))
                 self.labels[label][1] = True
