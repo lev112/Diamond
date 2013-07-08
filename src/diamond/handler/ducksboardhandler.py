@@ -50,7 +50,6 @@ class DucksboardHandler(Handler):
 
 
     def process(self, metric):
-        self.log.info(self.labels)
         if datetime.now() > self.last_sync_time + self.sync_time:
             self._sync_labels()
         label = self._get_label(metric.path)
@@ -66,6 +65,7 @@ class DucksboardHandler(Handler):
             source = self.ducksboard.data_source(label)
             res = source.push(data)
             if not self.labels[label][1]:
+                self.log.info('####### {0}-{1}'.format(label, self.labels[label]))
                 self.labels[label][1] = True
                 with open(self.labels_file_name, 'w') as f:
                     sorted_labels = sorted([(label, value, is_in_dashboard) for (label, [value, is_in_dashboard]) in self.labels.iteritems()])
