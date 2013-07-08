@@ -66,9 +66,8 @@ class DucksboardHandler(Handler):
             }
             source = self.ducksboard.data_source(label)
             res = source.push(data)
-
+            self.log.info('####### {0}-{1}'.format(label, self.labels[label]))
             if not self.labels[label][1]:
-                self.log.info('####### {0}-{1}'.format(label, self.labels[label]))
                 self.labels[label][1] = True
                 with open(self.labels_file_name, 'w') as f:
                     sorted_labels = sorted([(label, value, is_in_dashboard) for (label, [value, is_in_dashboard]) in self.labels.iteritems()])
