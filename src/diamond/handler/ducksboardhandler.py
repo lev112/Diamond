@@ -41,15 +41,16 @@ class DucksboardHandler(Handler):
             if update_widget:
                 self.ducksboard.widget(wid).update(widget)
 
+        self.last_sync_time = datetime.now()
         # the labels in the dashboard has changed
         if old_labels_in_dashboard != self.labels_in_dashboard:
             self.log.info('labels_in_dashboard has been updated')
-            self.labels = {}  # so that the labels log will be created again
-            self.last_sync_time = datetime.now()
+
 
 
 
     def process(self, metric):
+        self.log.info(self.labels)
         if datetime.now() > self.last_sync_time + self.sync_time:
             self._sync_labels()
         label = self._get_label(metric.path)
