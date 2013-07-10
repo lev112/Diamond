@@ -1,6 +1,5 @@
 import re
 from diamond.handler.Handler import Handler
-from libsaas.services import ducksboard
 from libsaas.services.ducksboard import Ducksboard
 from datetime import datetime, timedelta
 
@@ -15,10 +14,9 @@ class DucksboardHandler(Handler):
         self.api_key = self.config.get('api_key')
         self.sync_time = timedelta(minutes=int(self.config.get('sync_time_min', '5')))
         self.labels_file_name =  self.config.get('labels_file_name', '/tmp/diamond_labels.log')
-        self.last_sync_time = None
+        self.last_sync_time = datetime.min
         self.ducksboard = Ducksboard(self.api_key, '')
         self.log.info('started DucksboardHandler')
-        self._sync_labels()
 
     def _get_label(self, path):
         return path.lower()
@@ -54,19 +52,19 @@ class DucksboardHandler(Handler):
     def process(self, metric):
         if datetime.now() > self.last_sync_time + self.sync_time:
             self._sync_labels()
-        rewrite_lables_log = False
+        rewrite_labels_log = False
         label = self._get_label(metric.path)
 
         # first time we see this lables
         if label not in self.labels:
-            rewrite_lables_log = True
+            rewrite_labels_log = True
             self.labels[label] = [metric.value, False]  # (value, is_in_dashboard)
 
         if label in self.labels_in_dashboard:
              # first time that we see that the label is in the the dashboard
             if not self.labels[label][1]:
                 self.labels[label][1] = True
-                rewrite_lables_log = True
+                rewrite_labels_log = True
             data = None
             try:
                 data = {
@@ -79,7 +77,7 @@ class DucksboardHandler(Handler):
             except Exception:
                 self.log.exception('{0}: {1}'.format(label, data))
 
-        if rewrite_lables_log:
+        if rewrite_labels_log:
             with open(self.labels_file_name, 'w') as f:
                 sorted_labels = sorted([(label, value, is_in_dashboard) for (label, [value, is_in_dashboard]) in self.labels.iteritems()])
                 lines = ['{0} {1}\t#{2}\n'.format(('*' if is_in_dashboard else ' '), label, value) for (label, value, is_in_dashboard) in sorted_labels]
