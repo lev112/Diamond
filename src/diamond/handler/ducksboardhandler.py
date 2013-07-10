@@ -67,6 +67,7 @@ class DucksboardHandler(Handler):
             if not self.labels[label][1]:
                 self.labels[label][1] = True
                 rewrite_lables_log = True
+            data = None
             try:
                 data = {
                     "value": metric.value
@@ -81,5 +82,5 @@ class DucksboardHandler(Handler):
         if rewrite_lables_log:
             with open(self.labels_file_name, 'w') as f:
                 sorted_labels = sorted([(label, value, is_in_dashboard) for (label, [value, is_in_dashboard]) in self.labels.iteritems()])
-                lines = ['{0} {1}\t#{2}'.format(('*' if is_in_dashboard else ' '), label, value) for (label, value, is_in_dashboard) in sorted_labels]
-                f.writelines('\n'.join(lines))
+                lines = ['{0} {1}\t#{2}\n'.format(('*' if is_in_dashboard else ' '), label, value) for (label, value, is_in_dashboard) in sorted_labels]
+                f.writelines(lines)
