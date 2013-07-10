@@ -54,25 +54,33 @@ class DucksboardHandler(Handler):
     def process(self, metric):
         if datetime.now() > self.last_sync_time + self.sync_time:
             self._sync_labels()
+        rewrite_lables_log = False
         label = self._get_label(metric.path)
-        # generate a list of all the labels
-        if label not in self.labels:
-            self.labels[label] = [metric.value, False]  # (value, is_in_dashboard)
-        if label not in self.labels_in_dashboard:
-            return
-        try:
-            data = {
-                "value": metric.value
-            }
-            source = self.ducksboard.data_source(label)
-            res = source.push(data)
-            # self.log.info('####### {0}-{1}'.format(label, self.labels[label]))
+
+        if label in self.labels_in_dashboard:
+            try:
+                data = {
+                    "value": metric.value
+                }
+                source = self.ducksboard.data_source(label)
+                res = source.push(data)
+                if res['response'] != 'ok':
+                    self.log.warning('error in pushing data {0} with error {1}'.format(data, res))
+            except Exception:
+                self.log.exception('{0}: {1}'.format(label, data))
+
+            # first time we see this lables
+            if label not in self.labels:
+                rewrite_lables_log = True
+                self.labels[label] = [metric.value, False]  # (value, is_in_dashboard)
+
+            # first time that this lable is in the dashboard
             if not self.labels[label][1]:
                 self.labels[label][1] = True
+                rewrite_lables_log = True
+
+            if rewrite_lables_log:
                 with open(self.labels_file_name, 'w') as f:
                     sorted_labels = sorted([(label, value, is_in_dashboard) for (label, [value, is_in_dashboard]) in self.labels.iteritems()])
                     lines = ['{0} {1}\t#{2}'.format(('*' if is_in_dashboard else ' '), label, value) for (label, value, is_in_dashboard) in sorted_labels]
-
                     f.writelines('\n'.join(lines))
-        except Exception:
-            self.log.exception('{0}: {1}'.format(label,data))
