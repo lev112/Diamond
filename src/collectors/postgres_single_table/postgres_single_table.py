@@ -1,6 +1,29 @@
-from collectors.postgres.postgres import PostgresqlCollector
+from postgres import *
+# from psycopg2._psycopg import ProgrammingError
 
 __author__ = 'Lev'
+
+registry['extended'] = (
+    DatabaseStats,
+    DatabaseConnectionCount,
+    UserTableStats,
+    UserIndexStats,
+    UserTableIOStats,
+    UserIndexIOStats,
+    ConnectionStateStats,
+    LockStats,
+    RelationSizeStats,
+    BackgroundWriterStats,
+    # WalSegmentStats,
+    TransactionCount,
+    IdleInTransactions,
+    LongestRunningQueries,
+    UserConnectionCount,
+    TableScanStats,
+    TupleAccessStats,
+)
+
+
 
 
 class PostgresqlSingleDbCollector(PostgresqlCollector):
@@ -21,11 +44,9 @@ class PostgresqlSingleDbCollector(PostgresqlCollector):
         })
         return config
 
-
-
     def _get_db_names(self):
         database = self.config['database']
         if database:
             return [database]
         else:
-            return super(SingleDbPostgresqlCollector, self)._get_db_names()
+            return super(PostgresqlSingleDbCollector, self)._get_db_names()
