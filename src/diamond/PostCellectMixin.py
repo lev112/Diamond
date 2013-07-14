@@ -8,9 +8,27 @@ class PostCollectMixin(object):
 
     def __init__(self):
         super(PostCollectMixin, self).__init__()
-        # the config should be in the form 'name1=val1+val2; name2=(val3+val4)/val5; ...'
-        actions = [line.split('=', 1) for line in self.config['post_collections'].split(';')]
+        # the config should be in the form 'name1:val1+val2; name2:(val3+val4)/val5; ...'
+        actions = [line.split(':', 1) for line in self.config['post_collections'].split(';')]
         self.post_collections = {name.strip(): exp for name, exp in actions}
+
+
+    def get_default_config_help(self):
+        config_help = super(PostCollectMixin, self).get_default_config_help()
+        config_help.update({
+            'post_collections':  'how to collect metrics the are composed of other metrics',
+        })
+        return config_help
+
+    def get_default_config(self):
+        """
+        Returns the default collector settings
+        """
+        config = super(PostCollectMixin, self).get_default_config()
+        config.update({
+           'post_collections':  '',
+        })
+        return config
 
     def collect(self):
         self.collected_metrics = {}
