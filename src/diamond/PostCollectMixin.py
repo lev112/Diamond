@@ -35,8 +35,11 @@ class PostCollectMixin(object):
         super(PostCollectMixin, self).collect()
         print self.collected_metrics
         for name, exp in self.post_collections.iteritems():
-            value = eval(exp, self.eval_globals, self.collected_metrics)
-            super(PostCollectMixin, self).publish(name=name, value=value)
+            try:
+                value = eval(exp, self.eval_globals, self.collected_metrics)
+                super(PostCollectMixin, self).publish(name=name, value=value)
+            except NameError:
+                self.log.exception('error evaluating in PostCollectMixin')
 
 
     def publish(self, name, value, *args, **kw):
