@@ -47,4 +47,4 @@ class PostCollectMixin(object):
         super(PostCollectMixin, self).publish(name=name, value=value, *args, **kw)
 
     def _sanitize_names(self, exp):
-        return exp.replace('.', '_')
+        return exp.replace('.', '_').lower()
