@@ -10,7 +10,7 @@ class PostCollectMixin(object):
         super(PostCollectMixin, self).__init__(*args, **kw)
         # the config should be in the form 'name1:val1+val2; name2:(val3+val4)/val5; ...'
         actions = [line.split(':', 1) for line in self.config['post_collections'].split(';') if line.strip()]
-        self.post_collections = {name.strip(): exp for name, exp in actions}
+        self.post_collections = {name.strip(): self._sanitize_names(exp) for name, exp in actions}
 
 
     def get_default_config_help(self):
@@ -39,5 +39,8 @@ class PostCollectMixin(object):
 
 
     def publish(self, name, value, *args, **kw):
-        self.collected_metrics[name] = value
+        self.collected_metrics[self._sanitize_names(name)] = value
         super(PostCollectMixin, self).publish(name=name, value=value, *args, **kw)
+
+    def _sanitize_names(self, exp):
+        return exp.replace('.', '_')
