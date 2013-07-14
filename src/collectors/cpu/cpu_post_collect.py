@@ -3,5 +3,5 @@ from diamond.PostCollectMixin import PostCollectMixin
 
 __author__ = 'Lev'
 
-class CpuPostCollector(PostCollectMixin, CPUCollector):
+class CPUPostCollector(PostCollectMixin, CPUCollector):
     pass
