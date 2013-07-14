@@ -6,10 +6,10 @@ class PostCollectMixin(object):
         '__builtins__': None
     }
 
-    def __init__(self):
-        super(PostCollectMixin, self).__init__()
+    def __init__(self, *args, **kw):
+        super(PostCollectMixin, self).__init__(*args, **kw)
         # the config should be in the form 'name1:val1+val2; name2:(val3+val4)/val5; ...'
-        actions = [line.split(':', 1) for line in self.config['post_collections'].split(';')]
+        actions = [line.split(':', 1) for line in self.config['post_collections'].split(';') if line.strip()]
         self.post_collections = {name.strip(): exp for name, exp in actions}
 
 
