@@ -1,5 +1,5 @@
 from cpu import CPUCollector
-from diamond.PostCellectMixin import PostCollectMixin
+from diamond.PostCollectMixin import PostCollectMixin
 
 __author__ = 'Lev'
 
