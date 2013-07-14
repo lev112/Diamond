@@ -1,5 +1,5 @@
 from diskspace import DiskSpaceCollector
-from diamond.PostCollectMixin import PostCollectMixin
+from diamond.post_collect_mixin import PostCollectMixin
 
 __author__ = 'Lev'
 

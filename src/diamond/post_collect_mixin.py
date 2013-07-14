@@ -33,7 +33,6 @@ class PostCollectMixin(object):
     def collect(self):
         self.collected_metrics = {}
         super(PostCollectMixin, self).collect()
-        print self.collected_metrics
         for name, exp in self.post_collections.iteritems():
             try:
                 value = eval(exp, self.eval_globals, self.collected_metrics)
