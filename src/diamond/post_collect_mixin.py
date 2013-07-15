@@ -8,7 +8,7 @@ class PostCollectMixin(object):
 
     def __init__(self, *args, **kw):
         super(PostCollectMixin, self).__init__(*args, **kw)
-        # the config should be in the form 'name1:val1+val2; name2:(val3+val4)/val5; ...'
+        # the config should be in the form 'name1:{val1}+{val2}; name2:({val3}+{val4})/{val5}; ...'
         actions = [line.split(':', 1) for line in self.config['post_collections'].split(';') if line.strip()]
         self.post_collections = {name.strip(): self._sanitize_names(exp) for name, exp in actions}
 
@@ -35,7 +35,8 @@ class PostCollectMixin(object):
         super(PostCollectMixin, self).collect()
         for name, exp in self.post_collections.iteritems():
             try:
-                value = eval(exp, self.eval_globals, self.collected_metrics)
+                exp = exp.format(**self.collected_metrics)
+                value = eval(exp, self.eval_globals, {})
                 super(PostCollectMixin, self).publish(name=name, value=value)
             except NameError:
                 self.log.exception('error evaluating in PostCollectMixin')
