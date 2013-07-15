@@ -2,10 +2,6 @@ __author__ = 'Lev'
 
 
 class PostCollectMixin(object):
-    eval_globals = {
-        '__builtins__': None
-    }
-
     def __init__(self, *args, **kw):
         super(PostCollectMixin, self).__init__(*args, **kw)
         # the config should be in the form 'name1:{val1}+{val2}; name2:({val3}+{val4})/{val5}; ...'
@@ -36,7 +32,7 @@ class PostCollectMixin(object):
         for name, exp in self.post_collections.iteritems():
             try:
                 exp = exp.format(**self.collected_metrics)
-                value = eval(exp, self.eval_globals, {})
+                value = eval(exp)
                 super(PostCollectMixin, self).publish(name=name, value=value)
             except NameError:
                 self.log.exception('error evaluating in PostCollectMixin')
