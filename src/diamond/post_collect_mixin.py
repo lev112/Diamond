@@ -34,8 +34,8 @@ class PostCollectMixin(object):
                 exp = exp.format(**self.collected_metrics)
                 value = eval(exp)
                 super(PostCollectMixin, self).publish(name=name, value=value)
-            except NameError:
-                self.log.exception('error evaluating in PostCollectMixin')
+            except (NameError, KeyError) as e:
+                self.log.exception('error evaluating in PostCollectMixin: {0}'.format(exp))
 
 
     def publish(self, name, value, *args, **kw):
